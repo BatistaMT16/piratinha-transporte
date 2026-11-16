@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Piratinha Transporte — Solicitar Orçamento de Frete e Mudança</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-title">Piratinha Transporte</span>
+        <span class="brand-subtitle">Fretes e Mudanças com Segurança</span>
+      </div>
+      <a href="equipe.html" class="header-link">Área da Equipe</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <form id="form-orcamento" novalidate>
+      <!-- 1. Dados do Cliente e Prestador -->
+      <section class="card">
+        <h2 class="card-title">1. Seus Dados e Prestador</h2>
+
+        <div class="form-group">
+          <label for="cliente_nome">Seu Nome Completo *</label>
+          <input type="text" id="cliente_nome" placeholder="Ex: João da Silva" required />
+        </div>
+
+        <div class="form-group">
+          <label for="cliente_whatsapp">Seu WhatsApp (com DDD) *</label>
+          <input type="tel" id="cliente_whatsapp" placeholder="Ex: 21 99999-9999" required />
+        </div>
+
+        <div class="form-group">
+          <label>Escolha o Prestador da Piratinha Transporte *</label>
+          <div id="prestadores-container" class="prestador-list">
+            <p class="label-hint">Carregando prestadores disponíveis...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Data e Horário Pretendidos -->
+      <section class="card">
+        <h2 class="card-title">2. Data e Horário Pretendidos</h2>
+
+        <div class="form-group">
+          <label for="data_servico">Data da Mudança / Frete</label>
+          <input type="date" id="data_servico" />
+        </div>
+
+        <div class="form-group">
+          <label for="horario_servico">Horário Pretendido</label>
+          <input type="time" id="horario_servico" />
+        </div>
+      </section>
+
+      <!-- 3. Endereço de Retirada -->
+      <section class="card">
+        <h2 class="card-title">3. Endereço de Retirada</h2>
+
+        <div class="form-group">
+          <label for="ret_endereco">Endereço Completo (Rua, Número, Bairro, Cidade) *</label>
+          <input type="text" id="ret_endereco" placeholder="Ex: Rua das Flores, 120 - Centro, RJ" required />
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de Imóvel *</label>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn active-yes" data-imovel="ret" data-val="casa">Casa</button>
+            <button type="button" class="toggle-btn" data-imovel="ret" data-val="apartamento">Apartamento</button>
+          </div>
+        </div>
+
+        <div id="ret-apto-box" class="sub-box hidden">
+          <div class="form-group">
+            <label>Possui elevador?</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn" data-elevador="ret" data-val="sim">Sim</button>
+              <button type="button" class="toggle-btn active-no" data-elevador="ret" data-val="nao">Não</button>
+            </div>
+          </div>
+
+          <div id="ret-cabe-box" class="form-group hidden">
+            <label>Todos os objetos cabem no elevador?</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn active-yes" data-cabe="ret" data-val="sim">Sim</button>
+              <button type="button" class="toggle-btn" data-cabe="ret" data-val="nao">Não</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="ret_escada">Quantos andares de escada?</label>
+            <input type="number" id="ret_escada" min="0" value="0" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 12px;">
+          <label for="ret_obs">Observações do local de retirada <span class="label-hint">(máx. 100 caracteres)</span></label>
+          <input type="text" id="ret_obs" maxlength="100" placeholder="Ex: Rua sem saída, portão azul..." />
+          <div class="char-counter" id="ret_obs_count">0/100</div>
+        </div>
+      </section>
+
+      <!-- 4. Endereço de Entrega -->
+      <section class="card">
+        <h2 class="card-title">4. Endereço de Entrega</h2>
+
+        <div class="form-group">
+          <label for="ent_endereco">Endereço Completo (Rua, Número, Bairro, Cidade) *</label>
+          <input type="text" id="ent_endereco" placeholder="Ex: Av. Brasil, 500 - Ramos, RJ" required />
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de Imóvel *</label>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn active-yes" data-imovel="ent" data-val="casa">Casa</button>
+            <button type="button" class="toggle-btn" data-imovel="ent" data-val="apartamento">Apartamento</button>
+          </div>
+        </div>
+
+        <div id="ent-apto-box" class="sub-box hidden">
+          <div class="form-group">
+            <label>Possui elevador?</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn" data-elevador="ent" data-val="sim">Sim</button>
+              <button type="button" class="toggle-btn active-no" data-elevador="ent" data-val="nao">Não</button>
+            </div>
+          </div>
+
+          <div id="ent-cabe-box" class="form-group hidden">
+            <label>Todos os objetos cabem no elevador?</label>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn active-yes" data-cabe="ent" data-val="sim">Sim</button>
+              <button type="button" class="toggle-btn" data-cabe="ent" data-val="nao">Não</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="ent_escada">Quantos andares de escada?</label>
+            <input type="number" id="ent_escada" min="0" value="0" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 12px;">
+          <label for="ent_obs">Observações do local de entrega <span class="label-hint">(máx. 100 caracteres)</span></label>
+          <input type="text" id="ent_obs" maxlength="100" placeholder="Ex: Condomínio exige cadastro na portaria..." />
+          <div class="char-counter" id="ent_obs_count">0/100</div>
+        </div>
+      </section>
+
+      <!-- 5. Ajudantes e Caixas -->
+      <section class="card">
+        <h2 class="card-title">5. Ajudantes e Caixas</h2>
+
+        <div class="form-group">
+          <label>Vai precisar de ajudante? *</label>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn" data-ajudante="sim">Sim</button>
+            <button type="button" class="toggle-btn active-no" data-ajudante="nao">Não</button>
+          </div>
+          <div id="ajudante-qtd-box" class="sub-box hidden">
+            <label>Quantos ajudantes?</label>
+            <div class="stepper">
+              <button type="button" class="stepper-btn" id="ajudante-minus">-</button>
+              <span class="stepper-val" id="ajudante-val">1</span>
+              <button type="button" class="stepper-btn" id="ajudante-plus">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Vai precisar de caixas? *</label>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn" data-caixas="sim">Sim</button>
+            <button type="button" class="toggle-btn active-no" data-caixas="nao">Não</button>
+          </div>
+          <div id="caixas-qtd-box" class="sub-box hidden">
+            <label>Quantas caixas precisa?</label>
+            <div class="stepper">
+              <button type="button" class="stepper-btn" id="caixas-minus">-</button>
+              <span class="stepper-val" id="caixas-val">5</span>
+              <button type="button" class="stepper-btn" id="caixas-plus">+</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. Lista de Itens da Casa -->
+      <section class="card">
+        <h2 class="card-title">6. Itens da Mudança / Frete</h2>
+        <p class="label-hint" style="margin-bottom: 12px;">
+          Todos os itens começam marcados como <strong>Não</strong>. Marque <strong>Sim</strong> apenas nos itens que você vai transportar.
+        </p>
+
+        <div id="itens-lista-container"></div>
+
+        <!-- Itens Extras -->
+        <div class="sub-box" style="margin-top: 14px;">
+          <label>Adicionar Item Extra (não listado acima)</label>
+          <div class="form-group">
+            <input type="text" id="extra-nome" maxlength="100" placeholder="Nome do item (ex: Bicicleta, Caixa de som)" />
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-weight: 600; font-size: 0.9rem;">Quantidade:</span>
+            <div class="stepper">
+              <button type="button" class="stepper-btn" id="extra-minus">-</button>
+              <span class="stepper-val" id="extra-val">1</span>
+              <button type="button" class="stepper-btn" id="extra-plus">+</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <input type="text" id="extra-obs" maxlength="50" placeholder="Observação (máx. 50 caracteres)" />
+            <div class="char-counter" id="extra-obs-count">0/50</div>
+          </div>
+          <button type="button" id="btn-add-extra" class="btn btn-navy btn-block btn-sm">+ Adicionar Item Extra</button>
+
+          <div id="extras-adicionados" style="margin-top: 12px;"></div>
+        </div>
+      </section>
+
+      <!-- 7. Observação Geral -->
+      <section class="card">
+        <h2 class="card-title">7. Observações Gerais de Acesso e Logística</h2>
+        <div class="form-group">
+          <textarea
+            id="observacao_geral"
+            placeholder="Informe se vai precisar percorrer alguma distância a pé até o caminhão, quantos lances de escada ao todo, se o local fica em comunidade/beco, horários de restrição, etc."
+          ></textarea>
+        </div>
+      </section>
+
+      <div id="form-erro" class="alert alert-danger hidden"></div>
+
+      <button type="submit" id="btn-enviar" class="btn btn-primary btn-block" style="min-height: 54px; font-size: 1.08rem;">
+        Solicitar Orçamento
+      </button>
+    </form>
+  </main>
+
+  <!-- Modal de Confirmação e Redirecionamento WhatsApp -->
+  <div id="modal-sucesso" class="modal-backdrop hidden">
+    <div class="modal-content" style="text-align: center;">
+      <h2 class="modal-title">Orçamento Recebido!</h2>
+      <p style="font-size: 1.05rem; margin-bottom: 10px;">
+        Muito obrigado pela preferência na <strong>Piratinha Transporte</strong>!
+      </p>
+      <div class="alert alert-info" style="font-size: 1.1rem;">
+        Número do Orçamento: <strong id="modal-orcamento-id">#0</strong>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 16px;">
+        Logo logo entraremos em contato com um valor justo para o seu transporte.
+      </p>
+      <p style="font-size: 0.88rem; color: var(--primary); margin-bottom: 14px;">
+        Redirecionando para o WhatsApp do prestador em instantes...
+      </p>
+      <a id="btn-ir-whatsapp" href="#" class="btn btn-success btn-block">
+        Continuar para o WhatsApp
+      </a>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/cliente.js"></script>
+</body>
+</html>

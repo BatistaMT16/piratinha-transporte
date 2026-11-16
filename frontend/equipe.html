@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Piratinha Transporte — Painel da Equipe</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-title">Piratinha Transporte</span>
+        <span class="brand-subtitle" id="header-user-info">Painel da Equipe</span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <a href="index.html" class="header-link">Orçamento</a>
+        <button id="btn-sair" class="header-link hidden" style="cursor: pointer;">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- TELA DE LOGIN -->
+    <section id="login-section" class="card" style="max-width: 440px; margin: 24px auto;">
+      <h2 class="card-title">Acesso da Equipe</h2>
+      <p class="label-hint" style="margin-bottom: 14px;">
+        Entre com seu usuário e senha de prestador ou administrador.
+      </p>
+      <form id="form-login">
+        <div class="form-group">
+          <label for="login-usuario">Usuário</label>
+          <input type="text" id="login-usuario" placeholder="Ex: EDILSON ou matheus.silva" required />
+        </div>
+        <div class="form-group">
+          <label for="login-senha">Senha</label>
+          <input type="password" id="login-senha" placeholder="Digite sua senha" required />
+        </div>
+        <div id="login-erro" class="alert alert-danger hidden"></div>
+        <button type="submit" class="btn btn-primary btn-block">Entrar no Painel</button>
+      </form>
+    </section>
+
+    <!-- PAINEL LOGADO -->
+    <section id="painel-section" class="hidden">
+      <nav class="tabs-nav">
+        <button type="button" class="tab-btn active" data-tab="orcamentos">Orçamentos</button>
+        <button type="button" class="tab-btn" data-tab="agenda">Agenda</button>
+        <button type="button" class="tab-btn" data-tab="chamados">Suporte</button>
+        <button type="button" class="tab-btn" data-tab="perfil">Meu WhatsApp</button>
+      </nav>
+
+      <!-- ABA ORÇAMENTOS -->
+      <div id="tab-orcamentos">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+            <h2 class="card-title" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">Orçamentos</h2>
+            <a href="index.html" class="btn btn-primary btn-sm">+ Novo Manual</a>
+          </div>
+
+          <!-- Filtro de Prestador (apenas Admin) -->
+          <div id="admin-filtro-prestador" class="form-group hidden">
+            <label for="select-filtro-prestador">Filtrar por Prestador (Visão Admin)</label>
+            <select id="select-filtro-prestador">
+              <option value="todos">Todos os Prestadores</option>
+            </select>
+          </div>
+
+          <!-- Filtros de Status -->
+          <div class="filter-pills" id="status-filtros">
+            <button type="button" class="pill-btn active" data-status="todos">Todos</button>
+            <button type="button" class="pill-btn" data-status="em_aberto">Em Aberto</button>
+            <button type="button" class="pill-btn" data-status="fechado">Fechado</button>
+            <button type="button" class="pill-btn" data-status="encerrado">Encerrado</button>
+            <button type="button" class="pill-btn" data-status="cancelado">Cancelado</button>
+          </div>
+        </div>
+
+        <div id="orcamentos-lista"></div>
+      </div>
+
+      <!-- ABA AGENDA / CALENDÁRIO -->
+      <div id="tab-agenda" class="hidden">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <button type="button" id="cal-prev" class="btn btn-outline btn-sm">&lt;</button>
+            <strong id="cal-mes-titulo" style="color: var(--primary); font-size: 1.05rem;">Mês</strong>
+            <button type="button" id="cal-next" class="btn btn-outline btn-sm">&gt;</button>
+          </div>
+
+          <div class="calendar-grid">
+            <div class="calendar-weekday">Dom</div>
+            <div class="calendar-weekday">Seg</div>
+            <div class="calendar-weekday">Ter</div>
+            <div class="calendar-weekday">Qua</div>
+            <div class="calendar-weekday">Qui</div>
+            <div class="calendar-weekday">Sex</div>
+            <div class="calendar-weekday">Sáb</div>
+          </div>
+          <div id="calendar-days" class="calendar-grid"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title" id="agenda-lista-titulo">Serviços Fechados (Ordem Cronológica)</h3>
+          <div id="agenda-lista"></div>
+        </div>
+      </div>
+
+      <!-- ABA SUPORTE / CHAMADOS -->
+      <div id="tab-chamados" class="hidden">
+        <div class="card">
+          <h2 class="card-title">Abrir Chamado de Suporte</h2>
+          <form id="form-chamado">
+            <div class="form-group">
+              <label for="chamado-tipo">Tipo</label>
+              <select id="chamado-tipo">
+                <option value="bug">Bug / Erro</option>
+                <option value="melhoria">Solicitação de Melhoria</option>
+                <option value="duvida">Dúvida</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="chamado-titulo">Título</label>
+              <input type="text" id="chamado-titulo" maxlength="150" placeholder="Resumo do chamado" required />
+            </div>
+            <div class="form-group">
+              <label for="chamado-descricao">Descrição</label>
+              <textarea id="chamado-descricao" placeholder="Descreva com detalhes o problema ou sugestão..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Enviar Chamado</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title" id="chamados-titulo-lista">Meus Chamados</h3>
+          <div id="chamados-lista"></div>
+        </div>
+      </div>
+
+      <!-- ABA PERFIL / MEU WHATSAPP -->
+      <div id="tab-perfil" class="hidden">
+        <div class="card">
+          <h2 class="card-title">Meu Perfil e WhatsApp</h2>
+          <p style="margin-bottom: 12px;">
+            <strong id="perfil-nome"></strong><br />
+            <span class="label-hint" id="perfil-info"></span>
+          </p>
+          <form id="form-whatsapp">
+            <div class="form-group">
+              <label for="perfil-whatsapp">Número de WhatsApp (com 55 + DDD)</label>
+              <input type="tel" id="perfil-whatsapp" placeholder="Ex: 5521999999999" required />
+            </div>
+            <div id="whatsapp-msg" class="alert hidden"></div>
+            <button type="submit" class="btn btn-navy btn-block">Salvar WhatsApp</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL FECHAR / REMARCAR COM VERIFICAÇÃO DE CONFLITO DE AGENDA -->
+  <div id="modal-agenda" class="modal-backdrop hidden">
+    <div class="modal-content">
+      <h2 class="modal-title" id="modal-agenda-titulo">Confirmar Data e Horário</h2>
+      <div id="modal-conflito-alerta" class="alert alert-warning hidden"></div>
+
+      <form id="form-modal-agenda">
+        <div class="form-group">
+          <label for="agenda-data">Data do Serviço *</label>
+          <input type="date" id="agenda-data" required />
+        </div>
+        <div class="form-group">
+          <label for="agenda-horario">Horário *</label>
+          <input type="time" id="agenda-horario" required />
+        </div>
+        <div class="form-group" id="agenda-valor-group">
+          <label for="agenda-valor">Valor Orçado (R$)</label>
+          <input type="number" step="0.01" min="0" id="agenda-valor" placeholder="Ex: 350.00" />
+        </div>
+
+        <div class="action-grid">
+          <button type="submit" class="btn btn-success">Confirmar e Salvar</button>
+          <button type="button" id="btn-fechar-modal-agenda" class="btn btn-outline">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL REPASSAR ORÇAMENTO -->
+  <div id="modal-repasse" class="modal-backdrop hidden">
+    <div class="modal-content">
+      <h2 class="modal-title">Repassar Orçamento</h2>
+      <div class="form-group">
+        <label for="repasse-prestador">Escolha o colega prestador:</label>
+        <select id="repasse-prestador"></select>
+      </div>
+      <div id="repasse-wa-box" class="hidden" style="margin-bottom: 12px;">
+        <a id="repasse-wa-link" href="#" target="_blank" class="btn btn-success btn-block">
+          Avisar Colega no WhatsApp
+        </a>
+      </div>
+      <div class="action-grid">
+        <button type="button" id="btn-confirmar-repasse" class="btn btn-primary">Confirmar Repasse</button>
+        <button type="button" id="btn-fechar-modal-repasse" class="btn btn-outline">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CANCELAR ORÇAMENTO -->
+  <div id="modal-cancelar" class="modal-backdrop hidden">
+    <div class="modal-content">
+      <h2 class="modal-title">Cancelar Orçamento</h2>
+      <div class="form-group">
+        <label for="cancelar-motivo">Motivo do Cancelamento</label>
+        <textarea id="cancelar-motivo" placeholder="Ex: Cliente achou caro, desistiu da data..."></textarea>
+      </div>
+      <div class="action-grid">
+        <button type="button" id="btn-confirmar-cancelar" class="btn btn-danger">Confirmar Cancelamento</button>
+        <button type="button" id="btn-fechar-modal-cancelar" class="btn btn-outline">Voltar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/equipe.js"></script>
+</body>
+</html>
