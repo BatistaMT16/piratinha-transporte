@@ -9,5 +9,5 @@
 
   window.API_BASE_URL = isLocal
     ? 'http://localhost:3000/api'
-    : 'https://SUA-API-AQUI.com/api';
+    : 'https://backend-ttshoks-projects.vercel.app/api';
 })();
