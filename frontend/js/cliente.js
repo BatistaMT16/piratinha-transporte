@@ -500,6 +500,9 @@
       return;
     }
 
+    let pendingPayload = null;
+    let pendingClienteNome = '';
+
     const payload = {
       cliente_nome: clienteNome,
       cliente_whatsapp: clienteWhatsapp,
@@ -534,7 +537,55 @@
       itens: itensSelecionados,
     };
 
+    const [ano, mes, dia] = dataServico.split('-');
+    const dataFormatada = `${dia}/${mes}/${ano}`;
+    const totalQtdItens = itensSelecionados.reduce((acc, item) => acc + (item.quantidade || 1), 0);
+
+    document.getElementById('confirmacao-resumo').innerHTML = `
+      <div><strong>Prestador:</strong> ${escapeHtml(state.prestadorSelecionado.nome)}</div>
+      <div><strong>Data e Horário:</strong> ${escapeHtml(dataFormatada)} às ${escapeHtml(horarioServico)}</div>
+      <div><strong>Retirada:</strong> ${escapeHtml(retEndereco)}</div>
+      <div><strong>Entrega:</strong> ${escapeHtml(entEndereco)}</div>
+      <div><strong>Itens:</strong> ${totalQtdItens} ${totalQtdItens === 1 ? 'unidade' : 'unidades'} (${itensSelecionados.length} ${itensSelecionados.length === 1 ? 'tipo' : 'tipos'})</div>
+    `;
+
+    pendingPayload = payload;
+    pendingClienteNome = clienteNome;
+    window.__orcamentoPendente = { payload: pendingPayload, clienteNome: pendingClienteNome };
+    document.getElementById('modal-confirmar-envio').classList.remove('hidden');
+  });
+
+  function fecharModalConfirmacao() {
+    document.getElementById('modal-confirmar-envio').classList.add('hidden');
+  }
+
+  document.getElementById('btn-cancelar-envio').addEventListener('click', () => {
+    window.__orcamentoPendente = null;
+    fecharModalConfirmacao();
+  });
+
+  document.getElementById('modal-confirmar-envio').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-confirmar-envio') {
+      window.__orcamentoPendente = null;
+      fecharModalConfirmacao();
+    }
+  });
+
+  document.getElementById('btn-confirmar-envio').addEventListener('click', async () => {
+    const pendente = window.__orcamentoPendente;
+    if (!pendente) {
+      fecharModalConfirmacao();
+      return;
+    }
+
+    const erroBox = document.getElementById('form-erro');
     const btnEnviar = document.getElementById('btn-enviar');
+    const btnConfirmar = document.getElementById('btn-confirmar-envio');
+    const btnCancelar = document.getElementById('btn-cancelar-envio');
+
+    btnConfirmar.disabled = true;
+    btnCancelar.disabled = true;
+    btnConfirmar.textContent = 'Enviando orçamento...';
     btnEnviar.disabled = true;
     btnEnviar.textContent = 'Enviando orçamento...';
 
@@ -542,7 +593,7 @@
       const resp = await fetch(`${window.API_BASE_URL}/orcamentos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(pendente.payload),
       });
 
       const data = await resp.json();
@@ -551,21 +602,43 @@
         throw new Error(data.erro || 'Erro ao enviar orçamento.');
       }
 
+      window.__orcamentoPendente = null;
+      fecharModalConfirmacao();
+
       const orcamentoId = data.id;
       const telefonePrestador = String(data.prestador?.telefone || '').replace(/\D/g, '');
-      const msg = `Olá, me chamo ${clienteNome}, criei o orçamento de número #${orcamentoId}, estou no aguardo do contato.`;
+      const msg = `Olá, me chamo ${pendente.clienteNome}, criei o orçamento de número #${orcamentoId}, estou no aguardo do contato.`;
       const waUrl = `https://wa.me/${telefonePrestador}?text=${encodeURIComponent(msg)}`;
 
       document.getElementById('modal-orcamento-id').textContent = `#${orcamentoId}`;
       document.getElementById('btn-ir-whatsapp').href = waUrl;
       document.getElementById('modal-sucesso').classList.remove('hidden');
 
+      let segundosRestantes = 4;
+      const countdownEl = document.getElementById('whatsapp-countdown-msg');
+      countdownEl.textContent = `Redirecionando para o WhatsApp do prestador em ${segundosRestantes} segundos...`;
+
+      const intervalId = setInterval(() => {
+        segundosRestantes--;
+        if (segundosRestantes > 0) {
+          countdownEl.textContent = `Redirecionando para o WhatsApp do prestador em ${segundosRestantes} ${segundosRestantes === 1 ? 'segundo' : 'segundos'}...`;
+        } else {
+          clearInterval(intervalId);
+        }
+      }, 1000);
+
       setTimeout(() => {
+        clearInterval(intervalId);
         window.location.href = waUrl;
-      }, 2000);
+      }, 4000);
     } catch (err) {
+      fecharModalConfirmacao();
       erroBox.textContent = err.message;
       erroBox.classList.remove('hidden');
+      erroBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      btnConfirmar.disabled = false;
+      btnCancelar.disabled = false;
+      btnConfirmar.textContent = 'Sim, Enviar Orçamento';
       btnEnviar.disabled = false;
       btnEnviar.textContent = 'Solicitar Orçamento';
     }

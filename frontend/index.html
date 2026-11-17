@@ -239,6 +239,25 @@
     </form>
   </main>
 
+  <!-- Modal de Confirmação Antes do Envio -->
+  <div id="modal-confirmar-envio" class="modal-backdrop hidden">
+    <div class="modal-content">
+      <h2 class="modal-title" style="text-align: center;">Confirmar Envio?</h2>
+      <p style="color: var(--text-muted); font-size: 0.94rem; text-align: center; margin-bottom: 14px;">
+        Confira os dados principais antes de enviar seu orçamento:
+      </p>
+      <div id="confirmacao-resumo" class="sub-box" style="margin-bottom: 16px; font-size: 0.92rem; line-height: 1.6;"></div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button type="button" id="btn-confirmar-envio" class="btn btn-success btn-block">
+          Sim, Enviar Orçamento
+        </button>
+        <button type="button" id="btn-cancelar-envio" class="btn btn-outline btn-block">
+          Não, Voltar e Revisar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de Confirmação e Redirecionamento WhatsApp -->
   <div id="modal-sucesso" class="modal-backdrop hidden">
     <div class="modal-content" style="text-align: center;">
@@ -252,8 +271,8 @@
       <p style="color: var(--text-muted); margin-bottom: 16px;">
         Logo logo entraremos em contato com um valor justo para o seu transporte.
       </p>
-      <p style="font-size: 0.88rem; color: var(--primary); margin-bottom: 14px;">
-        Redirecionando para o WhatsApp do prestador em instantes...
+      <p id="whatsapp-countdown-msg" style="font-size: 0.88rem; color: var(--primary); margin-bottom: 14px;">
+        Redirecionando para o WhatsApp do prestador em 4 segundos...
       </p>
       <a id="btn-ir-whatsapp" href="#" class="btn btn-success btn-block">
         Continuar para o WhatsApp
