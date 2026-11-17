@@ -47,11 +47,7 @@ docker compose up -d --build
 
 | Perfil | Nome | Usuário | Senha |
 | :--- | :--- | :--- | :--- |
-| Administrador Master | Matheus Silva | `matheus.silva` | `142536` |
-| Prestador (Fundador) | EDILSON CARLOS | `EDILSON` | `080871` |
-| Prestador | CARLOS BATISTA | `CARLOS` | `080871` |
-| Prestador | HELIONAY HADONAY | `HELIONAY` | `080871` |
-| Prestador | LAURILENE ANJOS | `LAURILENE` | `080871` |
+
 
 ---
 
