@@ -29,10 +29,14 @@ app.use('/api/prestadores', prestadoresRoutes);
 app.use('/api/orcamentos', orcamentosRoutes);
 app.use('/api/chamados', chamadosRoutes);
 
-app.listen(PORT, () => {
-  console.log(`[Piratinha Transporte API] Rodando na porta ${PORT}`);
-  // Aguarda brevemente para garantir que o Postgres esteja pronto antes da rotina inicial
-  setTimeout(() => {
-    iniciarRotinasAgendadas();
-  }, 3000);
-});
+module.exports = app;
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`[Piratinha Transporte API] Rodando na porta ${PORT}`);
+    // Aguarda brevemente para garantir que o Postgres esteja pronto antes da rotina inicial
+    setTimeout(() => {
+      iniciarRotinasAgendadas();
+    }, 3000);
+  });
+}
