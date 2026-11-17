@@ -590,6 +590,25 @@ textarea {
   color: #075985;
 }
 
+/* Validação de campos obrigatórios */
+.input-error {
+  border-color: #DC2626 !important;
+  background-color: #FEF2F2 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12) !important;
+}
+
+.card-error {
+  border-color: #DC2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.field-error-msg {
+  color: #DC2626;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
 /* Agenda / Calendário Mobile */
 .calendar-grid {
   display: grid;

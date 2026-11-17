@@ -46,13 +46,13 @@
         <h2 class="card-title">2. Data e Horário Pretendidos</h2>
 
         <div class="form-group">
-          <label for="data_servico">Data da Mudança / Frete</label>
-          <input type="date" id="data_servico" />
+          <label for="data_servico">Data da Mudança / Frete *</label>
+          <input type="date" id="data_servico" required />
         </div>
 
         <div class="form-group">
-          <label for="horario_servico">Horário Pretendido</label>
-          <input type="time" id="horario_servico" />
+          <label for="horario_servico">Horário Pretendido *</label>
+          <input type="time" id="horario_servico" required />
         </div>
       </section>
 
@@ -188,10 +188,10 @@
       </section>
 
       <!-- 6. Lista de Itens da Casa -->
-      <section class="card">
-        <h2 class="card-title">6. Itens da Mudança / Frete</h2>
+      <section class="card" id="card-itens">
+        <h2 class="card-title">6. Itens da Mudança / Frete *</h2>
         <p class="label-hint" style="margin-bottom: 12px;">
-          Todos os itens começam marcados como <strong>Não</strong>. Marque <strong>Sim</strong> apenas nos itens que você vai transportar.
+          Todos os itens começam marcados como <strong>Não</strong>. Marque <strong>Sim</strong> em pelo menos 1 item ou adicione um item extra abaixo.
         </p>
 
         <div id="itens-lista-container"></div>

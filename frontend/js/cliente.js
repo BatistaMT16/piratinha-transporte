@@ -253,6 +253,7 @@
         btnSim.classList.add('active-yes');
         btnNao.classList.remove('active-no');
         details.classList.remove('hidden');
+        limparErroItens();
       });
 
       btnNao.addEventListener('click', () => {
@@ -347,39 +348,91 @@
     state.extraQtd = 1;
     document.getElementById('extra-val').textContent = '1';
     document.getElementById('extra-obs-count').textContent = '0/50';
+    limparErroItens();
     renderExtras();
   });
+
+  // Helpers de Validação
+  function getDataHojeLocal() {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+  }
+
+  function limparErroCampo(el) {
+    if (!el) return;
+    el.classList.remove('input-error', 'card-error');
+    const container = el.classList.contains('card') ? el : el.parentElement;
+    if (container) {
+      container.querySelectorAll(':scope > .field-error-msg').forEach((msg) => msg.remove());
+    }
+  }
+
+  function limparErroItens() {
+    limparErroCampo(document.getElementById('card-itens'));
+  }
+
+  function limparTodosErros() {
+    document.querySelectorAll('.input-error').forEach((el) => el.classList.remove('input-error'));
+    document.querySelectorAll('.card-error').forEach((el) => el.classList.remove('card-error'));
+    document.querySelectorAll('.field-error-msg').forEach((el) => el.remove());
+    document.getElementById('form-erro').classList.add('hidden');
+  }
+
+  function marcarErro(el, mensagem, isContainer = false) {
+    if (!el) return null;
+    el.classList.add(isContainer ? 'card-error' : 'input-error');
+
+    const msgEl = document.createElement('div');
+    msgEl.className = 'field-error-msg';
+    msgEl.textContent = mensagem;
+
+    if (isContainer) {
+      el.appendChild(msgEl);
+    } else {
+      el.insertAdjacentElement('afterend', msgEl);
+    }
+    return el;
+  }
+
+  // Define data mínima no campo de data e limpa erros ao digitar
+  const dataServicoInput = document.getElementById('data_servico');
+  dataServicoInput.min = getDataHojeLocal();
+
+  ['cliente_nome', 'cliente_whatsapp', 'data_servico', 'horario_servico', 'ret_endereco', 'ent_endereco'].forEach(
+    (id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', () => limparErroCampo(el));
+        el.addEventListener('change', () => limparErroCampo(el));
+      }
+    }
+  );
 
   // Envio do Formulário
   document.getElementById('form-orcamento').addEventListener('submit', async (e) => {
     e.preventDefault();
+    limparTodosErros();
     const erroBox = document.getElementById('form-erro');
-    erroBox.classList.add('hidden');
 
-    const clienteNome = document.getElementById('cliente_nome').value.trim();
-    const clienteWhatsapp = document.getElementById('cliente_whatsapp').value.trim();
-    const retEndereco = document.getElementById('ret_endereco').value.trim();
-    const entEndereco = document.getElementById('ent_endereco').value.trim();
+    const nomeEl = document.getElementById('cliente_nome');
+    const whatsappEl = document.getElementById('cliente_whatsapp');
+    const dataEl = document.getElementById('data_servico');
+    const horarioEl = document.getElementById('horario_servico');
+    const retEl = document.getElementById('ret_endereco');
+    const entEl = document.getElementById('ent_endereco');
+    const prestadoresEl = document.getElementById('prestadores-container');
+    const cardItensEl = document.getElementById('card-itens');
 
-    if (!clienteNome || clienteWhatsapp.replace(/\D/g, '').length < 10) {
-      erroBox.textContent = 'Por favor, informe seu nome e um WhatsApp válido com DDD.';
-      erroBox.classList.remove('hidden');
-      erroBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
-
-    if (!state.prestadorSelecionado) {
-      erroBox.textContent = 'Selecione um prestador de serviço.';
-      erroBox.classList.remove('hidden');
-      return;
-    }
-
-    if (!retEndereco || !entEndereco) {
-      erroBox.textContent = 'Preencha os endereços completos de retirada e entrega.';
-      erroBox.classList.remove('hidden');
-      erroBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
+    const clienteNome = nomeEl.value.trim();
+    const clienteWhatsapp = whatsappEl.value.trim();
+    const whatsappDigits = clienteWhatsapp.replace(/\D/g, '');
+    const dataServico = dataEl.value;
+    const horarioServico = horarioEl.value;
+    const retEndereco = retEl.value.trim();
+    const entEndereco = entEl.value.trim();
 
     const itensSelecionados = [
       ...state.itens
@@ -392,12 +445,67 @@
       ...state.extras,
     ];
 
+    let primeiroErroEl = null;
+    const registrarErro = (el, msg, isContainer = false) => {
+      marcarErro(el, msg, isContainer);
+      if (!primeiroErroEl) primeiroErroEl = el;
+    };
+
+    const palavrasNome = clienteNome.split(/\s+/).filter(Boolean);
+    if (!clienteNome || palavrasNome.length < 2 || clienteNome.length < 5) {
+      registrarErro(nomeEl, 'Informe seu nome completo (nome e sobrenome).');
+    }
+
+    if (whatsappDigits.length < 10 || whatsappDigits.length > 11) {
+      registrarErro(whatsappEl, 'Informe um WhatsApp válido com DDD (10 ou 11 dígitos).');
+    }
+
+    if (!state.prestadorSelecionado) {
+      registrarErro(prestadoresEl, 'Selecione um prestador de serviço.', true);
+    }
+
+    if (!dataServico) {
+      registrarErro(dataEl, 'Informe a data pretendida para a mudança/frete.');
+    } else if (dataServico < getDataHojeLocal()) {
+      registrarErro(dataEl, 'A data do serviço não pode ser no passado.');
+    }
+
+    if (!horarioServico) {
+      registrarErro(horarioEl, 'Informe o horário pretendido.');
+    }
+
+    if (retEndereco.length < 5) {
+      registrarErro(retEl, 'Informe o endereço completo de retirada (rua, número, bairro, cidade).');
+    }
+
+    if (entEndereco.length < 5) {
+      registrarErro(entEl, 'Informe o endereço completo de entrega (rua, número, bairro, cidade).');
+    }
+
+    if (itensSelecionados.length === 0) {
+      const extraPendente = document.getElementById('extra-nome').value.trim();
+      const msgItens = extraPendente
+        ? 'Clique em "+ Adicionar Item Extra" para incluir o item digitado ou selecione ao menos 1 item da lista.'
+        : 'Selecione pelo menos 1 item na lista acima ou adicione um item extra.';
+      registrarErro(cardItensEl, msgItens, true);
+    }
+
+    if (primeiroErroEl) {
+      erroBox.textContent = 'Preencha todos os campos obrigatórios destacados em vermelho antes de enviar.';
+      erroBox.classList.remove('hidden');
+      primeiroErroEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (typeof primeiroErroEl.focus === 'function' && !primeiroErroEl.classList.contains('card')) {
+        primeiroErroEl.focus({ preventScroll: true });
+      }
+      return;
+    }
+
     const payload = {
       cliente_nome: clienteNome,
       cliente_whatsapp: clienteWhatsapp,
       prestador_id: state.prestadorSelecionado.id,
-      data_servico: document.getElementById('data_servico').value || null,
-      horario_servico: document.getElementById('horario_servico').value || null,
+      data_servico: dataServico,
+      horario_servico: horarioServico,
       precisa_ajudante: state.precisa_ajudante,
       qtd_ajudantes: state.precisa_ajudante ? state.qtd_ajudantes : 0,
       precisa_caixas: state.precisa_caixas,

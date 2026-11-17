@@ -88,18 +88,56 @@ router.post('/', async (req, res) => {
     } = req.body || {};
 
     const nomeLimpo = String(cliente_nome || '').trim();
+    const palavrasNome = nomeLimpo.split(/\s+/).filter(Boolean);
     const whatsappLimpo = normalizarWhatsapp(cliente_whatsapp);
 
-    if (!nomeLimpo || whatsappLimpo.length < 10) {
-      return res.status(400).json({ erro: 'Informe seu nome e um WhatsApp válido com DDD.' });
+    if (!nomeLimpo || palavrasNome.length < 2 || nomeLimpo.length < 5) {
+      return res.status(400).json({ erro: 'Informe seu nome completo (nome e sobrenome).' });
+    }
+
+    if (whatsappLimpo.length < 10 || whatsappLimpo.length > 11) {
+      return res.status(400).json({ erro: 'Informe um WhatsApp válido com DDD (10 ou 11 dígitos).' });
     }
 
     if (!prestador_id) {
       return res.status(400).json({ erro: 'Selecione um prestador de serviço.' });
     }
 
+    const dataLimpa = String(data_servico || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataLimpa)) {
+      return res.status(400).json({ erro: 'Informe a data pretendida para o serviço.' });
+    }
+
+    const hojeBrasil = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+    if (dataLimpa < hojeBrasil) {
+      return res.status(400).json({ erro: 'A data do serviço não pode ser no passado.' });
+    }
+
+    const horarioLimpo = String(horario_servico || '').trim();
+    if (!/^\d{2}:\d{2}(:\d{2})?$/.test(horarioLimpo)) {
+      return res.status(400).json({ erro: 'Informe o horário pretendido para o serviço.' });
+    }
+
     if (!Array.isArray(enderecos) || enderecos.length < 2) {
       return res.status(400).json({ erro: 'Informe os endereços de retirada e entrega.' });
+    }
+
+    const endRetirada = enderecos.find((e) => e && e.tipo === 'retirada');
+    const endEntrega = enderecos.find((e) => e && e.tipo === 'entrega');
+    if (
+      !endRetirada ||
+      String(endRetirada.endereco_completo || '').trim().length < 5 ||
+      !endEntrega ||
+      String(endEntrega.endereco_completo || '').trim().length < 5
+    ) {
+      return res.status(400).json({ erro: 'Informe os endereços completos de retirada e entrega.' });
+    }
+
+    const itensValidos = Array.isArray(itens)
+      ? itens.filter((i) => i && String(i.nome_item || '').trim().length > 0)
+      : [];
+    if (itensValidos.length === 0) {
+      return res.status(400).json({ erro: 'Selecione pelo menos 1 item para o orçamento.' });
     }
 
     // Verifica se o prestador existe e é perfil prestador
