@@ -56,10 +56,9 @@
       }
 
       container.innerHTML = '';
-      state.prestadores.forEach((p, index) => {
+      state.prestadores.forEach((p) => {
         const label = document.createElement('label');
-        label.className = 'prestador-option' + (index === 0 ? ' selected' : '');
-        if (index === 0) state.prestadorSelecionado = p;
+        label.className = 'prestador-option';
 
         const tagHtml = p.cargo_tag
           ? `<span class="tag-fundador">${escapeHtml(p.cargo_tag)}</span>`
@@ -67,7 +66,7 @@
 
         label.innerHTML = `
           <span class="prestador-radio">
-            <input type="radio" name="prestador_id" value="${p.id}" ${index === 0 ? 'checked' : ''} />
+            <input type="radio" name="prestador_id" value="${p.id}" />
             <span>${escapeHtml(p.nome)}</span>
           </span>
           ${tagHtml}
@@ -77,6 +76,7 @@
           state.prestadorSelecionado = p;
           document.querySelectorAll('.prestador-option').forEach((el) => el.classList.remove('selected'));
           label.classList.add('selected');
+          limparErroCampo(container);
         });
 
         container.appendChild(label);
@@ -364,9 +364,9 @@
   function limparErroCampo(el) {
     if (!el) return;
     el.classList.remove('input-error', 'card-error');
-    const container = el.classList.contains('card') ? el : el.parentElement;
-    if (container) {
-      container.querySelectorAll(':scope > .field-error-msg').forEach((msg) => msg.remove());
+    el.querySelectorAll(':scope > .field-error-msg').forEach((msg) => msg.remove());
+    if (el.parentElement) {
+      el.parentElement.querySelectorAll(':scope > .field-error-msg').forEach((msg) => msg.remove());
     }
   }
 

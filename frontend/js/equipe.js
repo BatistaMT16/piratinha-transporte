@@ -223,6 +223,164 @@
     return `https://wa.me/${telFinal}?text=${encodeURIComponent(msg)}`;
   }
 
+  function formatarDetalhesEnderecoTexto(end) {
+    if (!end) return '';
+    let detalhes = `Imóvel: ${end.tipo_imovel === 'apartamento' ? 'Apartamento' : 'Casa'}`;
+    if (end.tipo_imovel === 'apartamento') {
+      detalhes += ` | Elevador: ${end.tem_elevador ? 'Sim' : 'Não'}`;
+      if (end.tem_elevador) {
+        detalhes += ` (Cabe tudo: ${end.cabe_elevador ? 'Sim' : 'Não'})`;
+      }
+      detalhes += ` | Escadas: ${end.andares_escada || 0} andar(es)`;
+    }
+    return detalhes;
+  }
+
+  function exportarOrcamentoPDF(o) {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      alert('Biblioteca de PDF ainda carregando ou indisponível. Tente novamente em instantes.');
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 0;
+
+    function ensureSpace(neededHeight) {
+      if (y + neededHeight > pageHeight - 16) {
+        doc.addPage();
+        y = 16;
+      }
+    }
+
+    function addWrappedLine(text, fontSize = 10, isBold = false, color = [30, 41, 59], lineGap = 5) {
+      doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+      doc.setFontSize(fontSize);
+      doc.setTextColor(...color);
+      const lines = doc.splitTextToSize(String(text || ''), contentWidth);
+      for (const line of lines) {
+        ensureSpace(lineGap + 1);
+        doc.text(line, margin, y);
+        y += lineGap;
+      }
+    }
+
+    function addSectionTitle(title) {
+      ensureSpace(12);
+      y += 3;
+      doc.setFillColor(241, 245, 249);
+      doc.rect(margin, y - 4.5, contentWidth, 7, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(15, 41, 66);
+      doc.text(title, margin + 2, y);
+      y += 6;
+    }
+
+    // Cabeçalho
+    doc.setFillColor(15, 41, 66);
+    doc.rect(0, 0, pageWidth, 26, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(255, 255, 255);
+    doc.text('PIRATINHA TRANSPORTE', margin, 11);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Ficha de Orçamento #${o.id}  |  Status: ${formatarStatusLabel(o.status)}`, margin, 18);
+
+    const emitidoEm = new Date().toLocaleString('pt-BR');
+    doc.setFontSize(8.5);
+    doc.text(`Emitido em: ${emitidoEm}`, pageWidth - margin, 18, { align: 'right' });
+
+    y = 34;
+
+    // 1. Dados do Cliente e Serviço
+    addSectionTitle('1. Dados do Cliente e Serviço');
+    addWrappedLine(`Cliente: ${o.cliente_nome}`, 10, true);
+    addWrappedLine(`WhatsApp: ${o.cliente_whatsapp}`);
+    addWrappedLine(`Prestador Responsável: ${o.prestador_nome}`);
+    addWrappedLine(
+      `Data / Horário: ${formatarDataBR(o.data_servico)}${o.horario_servico ? ` às ${o.horario_servico}` : ''}`
+    );
+    addWrappedLine(
+      `Ajudantes: ${o.precisa_ajudante ? `Sim (${o.qtd_ajudantes})` : 'Não'}   |   Caixas: ${
+        o.precisa_caixas ? `Sim (${o.qtd_caixas})` : 'Não'
+      }`
+    );
+    if (o.valor_orcado) {
+      addWrappedLine(`Valor Orçado: R$ ${Number(o.valor_orcado).toFixed(2)}`, 10.5, true, [22, 163, 74]);
+    }
+    if (o.motivo_cancelamento) {
+      addWrappedLine(`Motivo do Cancelamento: ${o.motivo_cancelamento}`, 10, false, [220, 38, 38]);
+    }
+
+    // 2. Endereços
+    const ret = (o.enderecos || []).find((e) => e.tipo === 'retirada');
+    const ent = (o.enderecos || []).find((e) => e.tipo === 'entrega');
+
+    addSectionTitle('2. Endereços');
+    if (ret) {
+      addWrappedLine(`Retirada: ${ret.endereco_completo}`, 10, true);
+      addWrappedLine(formatarDetalhesEnderecoTexto(ret), 9.2, false, [100, 116, 139]);
+      if (ret.observacoes) {
+        addWrappedLine(`Obs. Retirada: ${ret.observacoes}`, 9.2, false, [100, 116, 139]);
+      }
+      y += 2;
+    }
+    if (ent) {
+      addWrappedLine(`Entrega: ${ent.endereco_completo}`, 10, true);
+      addWrappedLine(formatarDetalhesEnderecoTexto(ent), 9.2, false, [100, 116, 139]);
+      if (ent.observacoes) {
+        addWrappedLine(`Obs. Entrega: ${ent.observacoes}`, 9.2, false, [100, 116, 139]);
+      }
+    }
+
+    // 3. Itens
+    const itens = o.itens || [];
+    addSectionTitle(`3. Itens para Transporte (${itens.length})`);
+    if (itens.length === 0) {
+      addWrappedLine('Nenhum item específico informado.', 9.5, false, [100, 116, 139]);
+    } else {
+      itens.forEach((it) => {
+        const obsTxt = it.observacao_item ? ` (${it.observacao_item})` : '';
+        addWrappedLine(`• ${it.quantidade}x ${it.nome_item}${obsTxt}`, 9.8);
+      });
+    }
+
+    // 4. Observação Geral
+    if (o.observacao_geral) {
+      addSectionTitle('4. Observações Gerais de Acesso e Logística');
+      addWrappedLine(o.observacao_geral, 9.8);
+    }
+
+    // Rodapé
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text(
+        `Piratinha Transporte — Fretes e Mudanças com Segurança  |  Página ${i} de ${totalPages}`,
+        pageWidth / 2,
+        pageHeight - 8,
+        { align: 'center' }
+      );
+    }
+
+    const nomeSlug = String(o.cliente_nome || 'cliente')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '_')
+      .replace(/^_|_$/g, '');
+    doc.save(`Orcamento_${o.id}_${nomeSlug}.pdf`);
+  }
+
   function renderOrcamentos() {
     const container = document.getElementById('orcamentos-lista');
     if (state.orcamentos.length === 0) {
@@ -316,6 +474,7 @@
           <a href="${montarLinkWhatsappCliente(o)}" target="_blank" class="btn btn-success btn-sm">
             WhatsApp Cliente
           </a>
+          <button type="button" class="btn btn-navy btn-sm btn-exportar-pdf">Exportar PDF</button>
           ${
             o.status === 'em_aberto'
               ? `<button type="button" class="btn btn-primary btn-sm btn-fechar">Fechar Serviço</button>`
@@ -337,6 +496,9 @@
       `;
 
       // Bind ações
+      const btnExportarPdf = card.querySelector('.btn-exportar-pdf');
+      if (btnExportarPdf) btnExportarPdf.addEventListener('click', () => exportarOrcamentoPDF(o));
+
       const btnFechar = card.querySelector('.btn-fechar');
       if (btnFechar) btnFechar.addEventListener('click', () => abrirModalAgenda('fechar', o));
 
